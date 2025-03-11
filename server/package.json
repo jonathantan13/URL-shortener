@@ -1,0 +1,17 @@
+{
+  "name": "url-shortener-server",
+  "version": "1.0.0",
+  "description": "API for the URL shortener",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "Jonathan",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
