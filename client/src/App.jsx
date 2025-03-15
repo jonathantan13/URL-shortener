@@ -1,19 +1,52 @@
-function App() {
-  return (
-    // TODO: Separate into own components
+import { useState } from "react";
 
-    <div className="mx-auto my-16 w-xl max-w-7xl py-8 text-center">
-      <h2 className="text-4xl font-bold">Shorten URL</h2>
-      <div className="my-4 flex flex-row items-center justify-center">
-        <input
-          type="text"
-          className="my-4 block h-14 w-sm rounded-sm border-1 border-gray-400 px-3"
-          placeholder="Enter link here"
-        />
-        <button className="h-14 border-2 border-gray-400 bg-blue-500 px-2 text-white hover:cursor-pointer">
-          Shorten URL
-        </button>
-      </div>
+function App() {
+  const [longUrl, setLongUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+
+  async function handleShorten() {
+    if (!longUrl) return;
+
+    // API endpoint and data fetching goes here
+  }
+
+  return (
+    <div className="max-w-8xl mx-auto my-16 w-xl py-8 text-center">
+      <Header />
+      <Main
+        longUrl={longUrl}
+        setLongUrl={setLongUrl}
+        handleShorten={handleShorten}
+      />
+      {longUrl && (
+        <p className="overflow-scroll">
+          Your URL is: <strong>{longUrl}</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Header() {
+  return <h2 className="text-4xl font-bold">Shorten URL</h2>;
+}
+
+function Main({ longUrl, setLongUrl, handleShorten }) {
+  return (
+    <div className="my-4 flex flex-row items-center justify-center">
+      <input
+        type="text"
+        value={longUrl}
+        onChange={(e) => setLongUrl(e.target.value)}
+        className="my-4 block h-14 w-sm rounded-sm border-1 border-gray-400 px-3"
+        placeholder="Enter link here"
+      />
+      <button
+        onClick={handleShorten}
+        className="h-14 border-2 border-gray-400 bg-blue-500 px-2 text-white hover:cursor-pointer"
+      >
+        Shorten URL
+      </button>
     </div>
   );
 }
