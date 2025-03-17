@@ -6,11 +6,11 @@ function App() {
 
   async function handleShorten() {
     if (!longUrl) return;
-    // TODO: Add regex and route
+    // TODO: Add regex
     console.log(longUrl);
 
     try {
-      const res = await fetch("ROUTE GOES HERE", {
+      const res = await fetch("http://localhost:8000/shorten", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -22,6 +22,7 @@ function App() {
 
       const data = await res.json();
       console.log("Shortened URL: ", data);
+      setShortUrl(data.url);
     } catch (err) {
       console.log("Error:", err);
     }
@@ -35,9 +36,9 @@ function App() {
         setLongUrl={setLongUrl}
         handleShorten={handleShorten}
       />
-      {longUrl && (
+      {shortUrl != "" && (
         <p className="overflow-scroll">
-          Your URL is: <strong>{longUrl}</strong>
+          Your URL is: <strong>{shortUrl}</strong>
         </p>
       )}
     </div>

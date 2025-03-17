@@ -4,7 +4,7 @@
   "description": "Shortens URLs",
   "main": "index.js",
   "scripts": {
-    "server": "cd server && node index.js",
+    "server": "cd server && nodemon app.js",
     "client": "cd client && npm run dev",
     "start": "concurrently \"npm run server\" \"npm run client\""
   },
