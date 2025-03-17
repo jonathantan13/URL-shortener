@@ -6,8 +6,25 @@ function App() {
 
   async function handleShorten() {
     if (!longUrl) return;
+    // TODO: Add regex and route
+    console.log(longUrl);
 
-    // API endpoint and data fetching goes here
+    try {
+      const res = await fetch("ROUTE GOES HERE", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ longUrl }),
+      });
+
+      if (!res.ok) throw new Error(res.statusText);
+
+      const data = await res.json();
+      console.log("Shortened URL: ", data);
+    } catch (err) {
+      console.log("Error:", err);
+    }
   }
 
   return (
