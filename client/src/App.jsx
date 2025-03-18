@@ -1,13 +1,28 @@
 import { useState } from "react";
 
+import toast, { Toaster } from "react-hot-toast";
+
+import Header from "./Components/Header";
+import Main from "./Components/Main";
+import Modal from "./Components/Modal";
+
 function App() {
   const [longUrl, setLongUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  const regex = /^(https?|ftp):\/\/([^\s\/?#]+)([^\s?#]*)(\?[^#]*)?(#.*)?$/; // Shoutout deepseek
 
   async function handleShorten() {
-    if (!longUrl) return;
-    // TODO: Add regex
-    console.log(longUrl);
+    if (!longUrl || !regex.test(longUrl)) {
+      toast.error("Invalid URL, please try again!", {
+        duration: 5000,
+      });
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const res = await fetch("http://localhost:8000/shorten", {
@@ -18,54 +33,50 @@ function App() {
         body: JSON.stringify({ longUrl }),
       });
 
-      if (!res.ok) throw new Error(res.statusText);
+      if (!res.ok) {
+        throw new Error(res.statusText);
+      }
 
       const data = await res.json();
       console.log("Shortened URL: ", data);
       setShortUrl(data.url);
     } catch (err) {
-      console.log("Error:", err);
+      toast.error(err, {
+        duration: 4000,
+      });
+    } finally {
+      setIsLoading(false);
+      setShowModal(true);
+      toast.success("URL successfully shortened!", {
+        duration: 3000,
+      });
     }
   }
 
   return (
-    <div className="max-w-8xl mx-auto my-16 w-xl py-8 text-center">
-      <Header />
-      <Main
-        longUrl={longUrl}
-        setLongUrl={setLongUrl}
-        handleShorten={handleShorten}
+    <>
+      <Toaster
+        toastOptions={{
+          style: {
+            padding: "16px",
+          },
+        }}
       />
-      {shortUrl != "" && (
-        <p className="overflow-scroll">
-          Your URL is: <strong>{shortUrl}</strong>
-        </p>
-      )}
-    </div>
-  );
-}
-
-function Header() {
-  return <h2 className="text-4xl font-bold">Shorten URL</h2>;
-}
-
-function Main({ longUrl, setLongUrl, handleShorten }) {
-  return (
-    <div className="my-4 flex flex-row items-center justify-center">
-      <input
-        type="text"
-        value={longUrl}
-        onChange={(e) => setLongUrl(e.target.value)}
-        className="my-4 block h-14 w-sm rounded-sm border-1 border-gray-400 px-3"
-        placeholder="Enter link here"
+      <div className="max-w-8xl mx-auto my-16 w-xl py-8 text-center">
+        <Header />
+        <Main
+          longUrl={longUrl}
+          setLongUrl={setLongUrl}
+          handleShorten={handleShorten}
+          isLoading={isLoading}
+        />
+      </div>
+      <Modal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        shortUrl={shortUrl}
       />
-      <button
-        onClick={handleShorten}
-        className="h-14 border-2 border-gray-400 bg-blue-500 px-2 text-white hover:cursor-pointer"
-      >
-        Shorten URL
-      </button>
-    </div>
+    </>
   );
 }
 

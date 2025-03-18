@@ -1,12 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const morgan = require("morgan");
 const { nanoid } = require("nanoid");
 
 const app = express();
 
 app.use(cors());
+app.use(morgan("dev"));
 app.use(express.json());
+
+// TODO: Implement Torso
 
 const FILE_PATH = "./urls.json"; // Temp DB
 const urls = readUrls();
@@ -26,6 +30,8 @@ app.post("/shorten", (req, res) => {
 
   const shortCode = nanoid(6);
 
+  // TODO: Add checker to check for duplicated links, send back already existing shortCode if long link already exists
+
   urls[shortCode] = req.body.longUrl;
   writeUrls(urls);
 
@@ -34,7 +40,6 @@ app.post("/shorten", (req, res) => {
 
 app.get("/:shortenCode", (req, res) => {
   const shortCode = req.params.shortenCode;
-  console.log(`Code is ${shortCode}`);
   res.redirect(urls[shortCode]);
 });
 
