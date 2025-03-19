@@ -3,44 +3,61 @@ const cors = require("cors");
 const fs = require("fs");
 const morgan = require("morgan");
 const { nanoid } = require("nanoid");
+const { createClient } = require("@libsql/client");
+require("dotenv").config();
 
 const app = express();
+const FILE_PATH = "./urls.json"; // Temp DB
+const turso = createClient({
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
-app.use(cors());
+async function initializeDB() {
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS urls (
+      id TEXT PRIMARY KEY,
+      longUrl TEXT NOT NULL
+    )
+  `);
+}
+
+initializeDB();
+
+app.use(cors({ origin: "*" }));
 app.use(morgan("dev"));
 app.use(express.json());
 
-// TODO: Implement Torso
+// TODO: Add middleware to check for URL validity and implement Turso
 
-const FILE_PATH = "./urls.json"; // Temp DB
-const urls = readUrls();
-
-function readUrls() {
-  if (!fs.existsSync(FILE_PATH)) return {};
-  const data = fs.readFileSync(FILE_PATH, "utf-8");
-  return data ? JSON.parse(data) : {};
-}
-
-function writeUrls(data) {
-  fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
-}
-
-app.post("/shorten", (req, res) => {
+app.post("/shorten", async (req, res) => {
+  console.log("Test from post");
   if (!req.body.longUrl) return res.status(400).json({ error: "Invalid URL" });
 
   const shortCode = nanoid(6);
 
-  // TODO: Add checker to check for duplicated links, send back already existing shortCode if long link already exists
+  // TODO: Add checker to check for duplicated links, send back existing shortCode if long link already exists
 
-  urls[shortCode] = req.body.longUrl;
-  writeUrls(urls);
+  await turso.execute({
+    sql: "INSERT INTO urls (id, longUrl) VALUES (?, ?)",
+    args: [shortCode, req.body.longUrl],
+  });
 
   res.status(200).json({ url: `http://localhost:8000/${shortCode}` });
 });
 
-app.get("/:shortenCode", (req, res) => {
+app.get("/:shortenCode", async (req, res) => {
+  console.log("Test from redirect");
   const shortCode = req.params.shortenCode;
-  res.redirect(urls[shortCode]);
+
+  const result = await turso.execute({
+    sql: "SELECT longUrl FROM urls WHERE id = ?",
+    args: [shortCode],
+  });
+
+  if (result.rows.length > 0) return res.redirect(result.rows[0].longUrl);
+
+  res.status(404).json({ error: "Short URL not found!" });
 });
 
 app.listen(8000, () => console.log("Server running on port 8000"));
