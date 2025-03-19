@@ -7,7 +7,6 @@ const { createClient } = require("@libsql/client");
 require("dotenv").config();
 
 const app = express();
-const FILE_PATH = "./urls.json"; // Temp DB
 const turso = createClient({
   url: process.env.TURSO_DATABASE_URL,
   authToken: process.env.TURSO_AUTH_TOKEN,
@@ -28,15 +27,22 @@ app.use(cors({ origin: "*" }));
 app.use(morgan("dev"));
 app.use(express.json());
 
-// TODO: Add middleware to check for URL validity and implement Turso
-
 app.post("/shorten", async (req, res) => {
   console.log("Test from post");
   if (!req.body.longUrl) return res.status(400).json({ error: "Invalid URL" });
 
-  const shortCode = nanoid(6);
+  const existing = await turso.execute({
+    sql: "SELECT id FROM urls WHERE longUrl = ?",
+    args: [req.body.longUrl],
+  });
 
-  // TODO: Add checker to check for duplicated links, send back existing shortCode if long link already exists
+  if (existing.rows.length > 0) {
+    return res.status(200).json({
+      url: `http://localhost:8000/${existing.rows[0].id}`,
+    });
+  }
+
+  const shortCode = nanoid(6);
 
   await turso.execute({
     sql: "INSERT INTO urls (id, longUrl) VALUES (?, ?)",
